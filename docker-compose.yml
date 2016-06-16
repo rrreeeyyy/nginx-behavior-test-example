@@ -1,0 +1,43 @@
+version: '2'
+
+networks:
+  front:
+    ipam:
+      config:
+        - subnet: 10.0.0.0/16
+
+volumes:
+  socket:
+    driver: local
+  log:
+    driver: local
+  docroot:
+    driver: local
+
+services:
+  haproxy:
+    build: haproxy/
+    container_name: docker-haproxy-t
+    networks:
+      - front
+    ports:
+      - "8888:80"
+  nginx:
+    build: nginx/ 
+    container_name: docker-nginx-t
+    networks:
+      - front
+    expose:
+      - "80"
+    ports:
+      - "8080:8080"
+    volumes:
+      - docroot:/var/www/nginx/
+      - socket:/var/run/unicorn/
+  app:
+    build: app/
+    container_name: docker-app-t
+    networks:
+      - front
+    volumes:
+      - socket:/var/run/unicorn/
